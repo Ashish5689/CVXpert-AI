@@ -1,20 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Navbar from "./layout/Navbar";
 import HeroSection from "./landing/HeroSection";
 import FeatureSection from "./landing/FeatureSection";
 import AuthForm from "./auth/AuthForm";
-import Footer from "./layout/Footer";
+import { SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
+import { Button } from "./ui/button";
+import { ArrowRight } from "lucide-react";
 
-interface HomeProps {
-  isAuthenticated?: boolean;
-}
+const Home: React.FC = () => {
+  const { user } = useUser();
 
-const Home: React.FC<HomeProps> = ({ isAuthenticated = false }) => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar isAuthenticated={isAuthenticated} />
-
       <main className="flex-grow">
         {/* Hero Section */}
         <HeroSection
@@ -46,14 +43,21 @@ const Home: React.FC<HomeProps> = ({ isAuthenticated = false }) => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div className="space-y-6">
-                  <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-primary/10 p-3 rounded-full">
+              <SignedOut>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold">
+                      Create Your Professional Resume in Minutes
+                    </h3>
+                    <p className="text-gray-600">
+                      Our intuitive platform makes it easy to build a
+                      professional, ATS-friendly resume that highlights your
+                      skills and experience.
+                    </p>
+                    <ul className="space-y-3">
+                      <li className="flex items-center">
                         <svg
-                          className="h-6 w-6 text-primary"
-                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-primary mr-2"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -65,25 +69,11 @@ const Home: React.FC<HomeProps> = ({ isAuthenticated = false }) => {
                             d="M5 13l4 4L19 7"
                           />
                         </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-lg mb-2">
-                          Quick Setup
-                        </h3>
-                        <p className="text-gray-600">
-                          Create an account in seconds and start building your
-                          professional resume right away.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-primary/10 p-3 rounded-full">
+                        <span>Choose from professional templates</span>
+                      </li>
+                      <li className="flex items-center">
                         <svg
-                          className="h-6 w-6 text-primary"
-                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-primary mr-2"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -92,26 +82,14 @@ const Home: React.FC<HomeProps> = ({ isAuthenticated = false }) => {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                            d="M5 13l4 4L19 7"
                           />
                         </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-lg mb-2">AI-Powered</h3>
-                        <p className="text-gray-600">
-                          Our AI assistant helps you craft compelling content
-                          tailored to your target job positions.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-primary/10 p-3 rounded-full">
+                        <span>Get AI-powered content suggestions</span>
+                      </li>
+                      <li className="flex items-center">
                         <svg
-                          className="h-6 w-6 text-primary"
-                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-primary mr-2"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -120,152 +98,67 @@ const Home: React.FC<HomeProps> = ({ isAuthenticated = false }) => {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                            d="M5 13l4 4L19 7"
                           />
                         </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-lg mb-2">
-                          ATS-Optimized
-                        </h3>
-                        <p className="text-gray-600">
-                          All our templates are designed to pass through
-                          Applicant Tracking Systems with ease.
-                        </p>
-                      </div>
+                        <span>Download in multiple formats</span>
+                      </li>
+                    </ul>
+                    <div className="pt-4">
+                      <Link
+                        to="/sign-up"
+                        className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                      >
+                        Get Started
+                        <svg
+                          className="ml-2 -mr-1 h-5 w-5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </Link>
                     </div>
                   </div>
+                  <div className="bg-white rounded-lg shadow-lg p-6">
+                    <AuthForm defaultTab="signup" />
+                  </div>
                 </div>
+              </SignedOut>
 
-                <div>
-                  <AuthForm defaultTab="signup" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                What Our Users Say
-              </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Thousands of job seekers have found success using our resume
-                builder.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Testimonial 1 */}
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="flex items-center mb-4">
-                  <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
-                    <img
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
-                      alt="User avatar"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Alex Johnson</h4>
-                    <p className="text-sm text-gray-500">Software Engineer</p>
+              <SignedIn>
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold mb-4">
+                    Welcome back, {user?.firstName || user?.username || "there"}!
+                  </h3>
+                  <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+                    Continue working on your professional resume or create a new one from our templates.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button size="lg" className="gap-2" asChild>
+                      <Link to="/dashboard">
+                        Go to Dashboard
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="lg" asChild>
+                      <Link to="/templates">
+                        Browse Templates
+                      </Link>
+                    </Button>
                   </div>
                 </div>
-                <p className="text-gray-600">
-                  "The AI suggestions helped me highlight achievements I would
-                  have otherwise overlooked. I received interview calls from 3
-                  companies within a week of applying!"
-                </p>
-                <div className="mt-4 flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      className="h-5 w-5 text-yellow-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-
-              {/* Testimonial 2 */}
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="flex items-center mb-4">
-                  <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
-                    <img
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
-                      alt="User avatar"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Sarah Miller</h4>
-                    <p className="text-sm text-gray-500">Marketing Manager</p>
-                  </div>
-                </div>
-                <p className="text-gray-600">
-                  "The drag-and-drop interface made it so easy to customize my
-                  resume. I was able to create different versions for different
-                  job applications in minutes."
-                </p>
-                <div className="mt-4 flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      className="h-5 w-5 text-yellow-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-
-              {/* Testimonial 3 */}
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="flex items-center mb-4">
-                  <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
-                    <img
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael"
-                      alt="User avatar"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Michael Chen</h4>
-                    <p className="text-sm text-gray-500">Product Designer</p>
-                  </div>
-                </div>
-                <p className="text-gray-600">
-                  "After struggling to get interviews for months, I created a
-                  resume with this tool and landed my dream job within weeks.
-                  The ATS optimization really works!"
-                </p>
-                <div className="mt-4 flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      className="h-5 w-5 text-yellow-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
+              </SignedIn>
             </div>
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 };

@@ -1,198 +1,332 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "../ui/button";
+import { Menu, X, User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { useUser, useClerk, SignedIn, SignedOut } from "@clerk/clerk-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
-import { Menu, X, User, LogIn } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
-interface NavbarProps {
-  isAuthenticated?: boolean;
-}
+const Navbar: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
-const Navbar = ({ isAuthenticated = false }: NavbarProps) => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleSignOut = () => {
+    signOut();
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!user) return "U";
+    
+    if (user.firstName && user.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`;
+    }
+    
+    if (user.firstName) {
+      return user.firstName[0];
+    }
+    
+    if (user.username) {
+      return user.username[0].toUpperCase();
+    }
+    
+    return "U";
+  };
+
   return (
-    <nav className="w-full h-[70px] bg-background border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto h-full px-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <span className="text-xl font-bold text-primary">ResumeAI</span>
-        </Link>
+    <header className="bg-background border-b border-border sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          {/* Logo and desktop navigation */}
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link to="/" className="text-xl font-bold text-primary">
+                CVXpert-AI
+              </Link>
+            </div>
+            <nav className="hidden md:ml-6 md:flex md:space-x-8">
+              <Link
+                to="/"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive("/")
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                }`}
+              >
+                Home
+              </Link>
+              <Link
+                to="/templates"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive("/templates")
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                }`}
+              >
+                Templates
+              </Link>
+              <Link
+                to="/features"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive("/features")
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                }`}
+              >
+                Features
+              </Link>
+              <Link
+                to="/pricing"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive("/pricing")
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                }`}
+              >
+                Pricing
+              </Link>
+              <SignedIn>
+                <Link
+                  to="/dashboard"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                    isActive("/dashboard")
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+              </SignedIn>
+            </nav>
+          </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link
-            to="/templates"
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Templates
-          </Link>
-          <Link
-            to="/features"
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Features
-          </Link>
-          <Link
-            to="/pricing"
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Pricing
-          </Link>
-        </div>
+          {/* Auth buttons (desktop) */}
+          <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4">
+            <SignedOut>
+              <Link to="/sign-in">
+                <Button variant="ghost">Log in</Button>
+              </Link>
+              <Link to="/sign-up">
+                <Button>Sign up</Button>
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 p-1 px-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium hidden sm:inline-block">
+                      {user?.firstName || user?.username || user?.emailAddresses[0]?.emailAddress?.split('@')[0]}
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
+                    {user?.emailAddresses[0]?.emailAddress}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleSignOut}
+                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SignedIn>
+          </div>
 
-        {/* Authentication Buttons */}
-        <div className="hidden md:flex items-center space-x-4">
-          {isAuthenticated ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full"
-                      >
-                        <User className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Link to="/dashboard" className="w-full">
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Link to="/profile" className="w-full">
-                          Profile
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Link to="/logout" className="w-full">
-                          Logout
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Account</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <>
-              <Button variant="ghost" asChild>
-                <Link to="/login">Log in</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/signup">Sign up</Link>
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <Button variant="ghost" size="icon" onClick={toggleMenu}>
-            {isMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+          {/* Mobile menu button */}
+          <div className="flex items-center md:hidden">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+              aria-controls="mobile-menu"
+              aria-expanded="false"
+              onClick={toggleMenu}
+            >
+              <span className="sr-only">Open main menu</span>
+              {isMenuOpen ? (
+                <X className="block h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="block h-6 w-6" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-background border-b border-border">
-          <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+        <div className="md:hidden" id="mobile-menu">
+          <div className="pt-2 pb-3 space-y-1">
+            <Link
+              to="/"
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                isActive("/")
+                  ? "border-primary text-primary-foreground bg-primary/10"
+                  : "border-transparent text-muted-foreground hover:bg-gray-50 hover:border-gray-300 hover:text-foreground"
+              }`}
+              onClick={toggleMenu}
+            >
+              Home
+            </Link>
             <Link
               to="/templates"
-              className="text-sm font-medium hover:text-primary transition-colors py-2"
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                isActive("/templates")
+                  ? "border-primary text-primary-foreground bg-primary/10"
+                  : "border-transparent text-muted-foreground hover:bg-gray-50 hover:border-gray-300 hover:text-foreground"
+              }`}
               onClick={toggleMenu}
             >
               Templates
             </Link>
             <Link
               to="/features"
-              className="text-sm font-medium hover:text-primary transition-colors py-2"
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                isActive("/features")
+                  ? "border-primary text-primary-foreground bg-primary/10"
+                  : "border-transparent text-muted-foreground hover:bg-gray-50 hover:border-gray-300 hover:text-foreground"
+              }`}
               onClick={toggleMenu}
             >
               Features
             </Link>
             <Link
               to="/pricing"
-              className="text-sm font-medium hover:text-primary transition-colors py-2"
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                isActive("/pricing")
+                  ? "border-primary text-primary-foreground bg-primary/10"
+                  : "border-transparent text-muted-foreground hover:bg-gray-50 hover:border-gray-300 hover:text-foreground"
+              }`}
               onClick={toggleMenu}
             >
               Pricing
             </Link>
-            <div className="pt-2 border-t border-border">
-              {isAuthenticated ? (
-                <div className="flex flex-col space-y-2">
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center text-sm font-medium hover:text-primary transition-colors py-2"
-                    onClick={toggleMenu}
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="flex items-center text-sm font-medium hover:text-primary transition-colors py-2"
-                    onClick={toggleMenu}
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Link>
-                  <Link
-                    to="/logout"
-                    className="flex items-center text-sm font-medium hover:text-primary transition-colors py-2"
-                    onClick={toggleMenu}
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Logout
-                  </Link>
-                </div>
-              ) : (
-                <div className="flex flex-col space-y-2">
-                  <Button variant="ghost" asChild className="justify-start">
-                    <Link to="/login" onClick={toggleMenu}>
-                      <LogIn className="h-4 w-4 mr-2" />
-                      Log in
-                    </Link>
+            <SignedIn>
+              <Link
+                to="/dashboard"
+                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                  isActive("/dashboard")
+                    ? "border-primary text-primary-foreground bg-primary/10"
+                    : "border-transparent text-muted-foreground hover:bg-gray-50 hover:border-gray-300 hover:text-foreground"
+                }`}
+                onClick={toggleMenu}
+              >
+                Dashboard
+              </Link>
+            </SignedIn>
+          </div>
+          <div className="pt-4 pb-3 border-t border-gray-200">
+            <SignedOut>
+              <div className="flex items-center px-4 space-x-3">
+                <Link to="/sign-in" className="w-full" onClick={toggleMenu}>
+                  <Button variant="ghost" className="w-full justify-center">
+                    Log in
                   </Button>
-                  <Button asChild>
-                    <Link to="/signup" onClick={toggleMenu}>
-                      Sign up
-                    </Link>
-                  </Button>
+                </Link>
+                <Link to="/sign-up" className="w-full" onClick={toggleMenu}>
+                  <Button className="w-full justify-center">Sign up</Button>
+                </Link>
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <div className="px-4 py-2">
+                <div className="flex items-center mb-3">
+                  <div className="flex-shrink-0">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-base font-medium">
+                      {user?.firstName || user?.username || "User"}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {user?.emailAddresses[0]?.emailAddress}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <Link 
+                    to="/profile" 
+                    className="block px-4 py-2 text-base font-medium text-foreground hover:bg-gray-100 rounded-md"
+                    onClick={toggleMenu}
+                  >
+                    <div className="flex items-center">
+                      <User className="mr-3 h-5 w-5 text-muted-foreground" />
+                      Profile
+                    </div>
+                  </Link>
+                  <Link 
+                    to="/dashboard" 
+                    className="block px-4 py-2 text-base font-medium text-foreground hover:bg-gray-100 rounded-md"
+                    onClick={toggleMenu}
+                  >
+                    <div className="flex items-center">
+                      <Settings className="mr-3 h-5 w-5 text-muted-foreground" />
+                      Dashboard
+                    </div>
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      handleSignOut();
+                      toggleMenu();
+                    }}
+                    className="w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:bg-gray-100 rounded-md"
+                  >
+                    <div className="flex items-center">
+                      <LogOut className="mr-3 h-5 w-5" />
+                      Log out
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </SignedIn>
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 };
 
