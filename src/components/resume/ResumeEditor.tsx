@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Plus, Trash, Download, Save, ArrowLeft } from 'lucide-react';
 import { ResumeTemplate } from '../templates/ResumeTemplates';
+import html2pdf from 'html2pdf.js';
+import { toast } from '../ui/use-toast';
 
 // Define resume data structure
 interface ResumeData {
@@ -116,6 +118,8 @@ const ResumeEditor: React.FC = () => {
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const resumeRef = useRef<HTMLDivElement>(null);
 
   // Load selected template from localStorage
   useEffect(() => {
@@ -136,8 +140,21 @@ const ResumeEditor: React.FC = () => {
 
   // Save resume data
   const saveResumeData = () => {
-    localStorage.setItem('resumeData', JSON.stringify(resumeData));
-    alert('Resume saved successfully!');
+    try {
+      localStorage.setItem('resumeData', JSON.stringify(resumeData));
+      toast({
+        title: "Resume Saved",
+        description: "Your resume has been saved successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error saving resume data:', error);
+      toast({
+        title: "Save Failed",
+        description: "There was an error saving your resume. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Update personal info
@@ -258,6 +275,55 @@ const ResumeEditor: React.FC = () => {
     });
   };
 
+  // Generate and download PDF
+  const handleDownloadPDF = async () => {
+    if (!resumeRef.current) return;
+    
+    try {
+      setIsGeneratingPdf(true);
+      
+      // Configure PDF options
+      const options = {
+        margin: [10, 10, 10, 10],
+        filename: `${resumeData.personalInfo.name || 'Resume'}_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      // Generate PDF
+      const content = resumeRef.current;
+      
+      // Create a clone of the resume element to modify for PDF
+      const clonedContent = content.cloneNode(true) as HTMLElement;
+      
+      // Apply print-specific styles
+      clonedContent.style.width = '210mm'; // A4 width
+      clonedContent.style.height = 'auto';
+      clonedContent.style.padding = '15mm';
+      clonedContent.style.boxSizing = 'border-box';
+      
+      // Generate PDF from the cloned content
+      await html2pdf().from(clonedContent).set(options).save();
+      
+      // Show success message
+      toast({
+        title: "PDF Generated Successfully",
+        description: "Your resume has been downloaded as a PDF file.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "There was an error generating your PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   return (
     <div className="bg-background min-h-screen">
       <div className="container mx-auto px-4 py-8">
@@ -277,9 +343,12 @@ const ResumeEditor: React.FC = () => {
               <Save className="h-4 w-4 mr-2" />
               Save
             </Button>
-            <Button>
+            <Button 
+              onClick={handleDownloadPDF} 
+              disabled={isGeneratingPdf || !selectedTemplate}
+            >
               <Download className="h-4 w-4 mr-2" />
-              Download PDF
+              {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
             </Button>
           </div>
         </div>
@@ -584,6 +653,7 @@ const ResumeEditor: React.FC = () => {
             <div className="aspect-[8.5/11] bg-white border shadow-sm mx-auto overflow-hidden">
               {selectedTemplate ? (
                 <div 
+                  ref={resumeRef}
                   className="p-8 h-full"
                   style={{ 
                     backgroundColor: selectedTemplate.colors.background,

@@ -14,6 +14,7 @@ import Layout from "./components/layout/Layout";
 import Dashboard from "./components/dashboard/Dashboard";
 import ProfilePage from "./components/profile/ProfilePage";
 import { ClerkProviderWithChildren } from "./lib/clerk";
+import { Toaster } from "./components/ui/toaster";
 import { 
   SignIn, 
   SignUp, 
@@ -90,6 +91,7 @@ function App() {
             <Route path="/auth-split/signup" element={<Layout centerContent><AuthPageSplit defaultTab="signup" /></Layout>} />
           </Routes>
           {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
+          <Toaster />
         </>
       </Suspense>
     </ClerkProviderWithChildren>
